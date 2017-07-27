@@ -98,11 +98,11 @@ yamlNumber : Parser Double
 yamlNumber = map scientificToDouble parseScientific
 
 yamlBool : Parser Bool
-yamlBool  =  (char 't' >! string "rue"  *> return True)
-         <|> (char 'f' >! string "alse" *> return False) <?> "Yaml Bool"
+yamlBool  =  (char 't' >! string "rue"  *> pure True)
+         <|> (char 'f' >! string "alse" *> pure False) <?> "Yaml Bool"
 
 yamlNull : Parser ()
-yamlNull = (char 'n' >! string "ull" >! return ()) <?> "Yaml Null"
+yamlNull = (char 'n' >! string "ull" >! pure ()) <?> "Yaml Null"
 
 ||| A parser that skips whitespace without jumping over lines
 yamlSpace : Monad m => ParserT String m ()
@@ -113,8 +113,8 @@ mutual
     yamlArray = char '-' *!> (yamlArrayValue `sepBy` (char '-'))
 
     keyValuePair : Parser (String, YamlValue)
-    keyValuePair = do key <- map pack (many (satisfy $ not . isSpace)) <* space
-                      val <- char ':' *> yamlValue
+    keyValuePair = do key <- map pack (many (satisfy $ not . isSpace)) <* spaces
+                      val <- char ':' *> spaces *> yamlValue
                       pure (key, val)
 
     yamlObject : Parser (SortedMap String YamlValue)
